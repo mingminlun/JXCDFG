@@ -5,10 +5,10 @@ import math
 
 idx = pd.IndexSlice
 
-df1 = pd.read_csv('MRO-CDFGPCI-20170723-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc_pci','t','6dB'])
+df1 = pd.read_csv('C:\data\\7_27a',skiprows = 1,names =['eci','sc_ear','nc_ear','nc_pci','t','6dB'])
 del df1['t']
 
-base1 = pd.read_csv('0618gc.csv',encoding = 'utf-8')
+base1 = pd.read_csv('C:\data\\0618gc.csv',encoding = 'utf-8')
 
 r = 6371229
 
@@ -16,7 +16,7 @@ r = 6371229
 
 ear_trans = lambda ear:ear+2640 if (ear >= 37750 and ear<=38249) else ear
  
-#eci2cgi = lambda x:"460-00-" + str(int(hex(x)[2:7],16)) + "-" + str(int(hex(x)[-2:],16))
+eci2cgi = lambda x:"460-00-" + str(int(hex(x)[2:7],16)) + "-" + str(int(hex(x)[-2:],16))
 
 df1['cgi']=df1['eci'].map(lambda x:"460-00-" + str(int(hex(x)[2:7],16)) + "-" + str(int(hex(x)[-2:],16)))
 
@@ -46,7 +46,7 @@ for ix, row in df1.iterrows():
     nc_pci = df1.loc[ix,'nc_pci']
     samples = df1.loc[ix,'6dB']
     
-    if sc_cgi in CGI:df
+    if sc_cgi in CGI:
         sc_name = list(base2.loc[idx[:,:,:,:,:,sc_cgi],idx['小区中文名']])[0]
         sc_city = list(base2.loc[idx[:,:,:,:,:,sc_cgi],idx['地市']])[0]
         sc_county = list(base2.loc[idx[:,:,:,:,:,sc_cgi],idx['区县']])[0]
@@ -69,6 +69,8 @@ for ix, row in df1.iterrows():
                 result =result.append(row)
                 
                 print(ix)
+
+
                 
 #a =base2.loc[idx[:,:,:,:,'460-00-934049-138'],idx['经度']] 
 #a =base2.loc[idx[:,:,:,:,df1.loc[0,'cgi']],idx['经度']]
