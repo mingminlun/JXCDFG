@@ -16,7 +16,7 @@ r = 6371229
 
 ear_trans = lambda ear:ear+2640 if (ear >= 37750 and ear<=38249) else ear
  
-#eci2cgi = lambda x:"460-00-" + str(int(hex(x)[2:7],16)) + "-" + str(int(hex(x)[-2:],16))
+eci2cgi = lambda x:"460-00-" + str(int(hex(x)[2:7],16)) + "-" + str(int(hex(x)[-2:],16))
 
 df1['cgi']=df1['eci'].map(lambda x:"460-00-" + str(int(hex(x)[2:7],16)) + "-" + str(int(hex(x)[-2:],16)))
 
