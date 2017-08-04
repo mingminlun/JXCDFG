@@ -5,16 +5,16 @@ import math
 
 idx = pd.IndexSlice
 
-df1 = pd.read_csv('C:\data\\7_27a',skiprows = 1,names =['eci','sc_ear','nc_ear','nc_pci','t','6dB'])
+df1 = pd.read_csv('C:\Work\JXWLJG\MR_0730\MRO-CDFGPCI-20170731-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc_pci','t','6dB'],low_memory=False)
 del df1['t']
 
-base1 = pd.read_csv('C:\data\\0618gc.csv',encoding = 'utf-8')
+base1 = pd.read_csv('C:\Work\JXWLJG\\0618gc.csv',encoding = 'utf-8')
 
 r = 6371229
 
 #dis = lambda lng1,lat1,lng2,lat2:math.sqrt(((lng1-lng2)*math.pi*r*math.cos(((lat1 + lat2) / 2) * math.pi / 180) / 180)**2+((lat1 - lat2)*math.pi*r/180)**2)
 
-ear_trans = lambda ear:ear+2640 if (ear >= 37750 and ear<=38249) else ear
+ear_trans = lambda ear:int(ear)+2640 if (int(ear) >= 37750 and int(ear)<=38249) else int(ear)
  
 eci2cgi = lambda x:"460-00-" + str(int(hex(x)[2:7],16)) + "-" + str(int(hex(x)[-2:],16))
 
@@ -27,6 +27,15 @@ df1 = df1.ix['室外'].ix['网格内'].reset_index()
 
 df1['sc_ear']=df1['sc_ear'].apply(ear_trans)
 df1['nc_ear']=df1['nc_ear'].apply(ear_trans)
+
+df1_count = pd.read_csv('C:\Work\JXWLJG\MR_0730\\0731_count.csv',encoding = 'utf-8') #读入重叠覆盖统计
+
+df1 = pd.merge(df1,df1_count.loc[:,['CGI.1','大于-110采样点数','重叠覆盖度']],left_on = 'cgi',right_on = 'CGI.1',how ='left').dropna()
+
+df1['correlation'] = df1['6dB']/df1['大于-110采样点数']
+
+df1 = df1[df1['correlation']>0.03]
+
 base1['中心载频的信道号']=base1['中心载频的信道号'].apply(ear_trans)
 
 base2= base1.set_index(['覆盖类型','物理小区识别码','中心载频的信道号','地市','区县','CGI'],drop=False).sortlevel(0).drop(['室内'],axis = 0)
@@ -42,9 +51,11 @@ for ix, row in df1.iterrows():
 # ix = 18684
 
     sc_cgi = str(df1.loc[ix,'cgi'])
-    nc_earfcn = df1.loc[ix,'nc_ear']
-    nc_pci = df1.loc[ix,'nc_pci']
-    samples = df1.loc[ix,'6dB']
+    nc_earfcn = int(df1.loc[ix,'nc_ear'])
+    nc_pci = int(df1.loc[ix,'nc_pci'])
+    samples = int(df1.loc[ix,'6dB'])
+    correlation = float(df1.loc[ix,'correlation'])
+    cdfg = float(df1.loc[ix,'重叠覆盖度'])
     
     if sc_cgi in CGI:
         sc_name = list(base2.loc[idx[:,:,:,:,:,sc_cgi],idx['小区中文名']])[0]
@@ -64,7 +75,7 @@ for ix, row in df1.iterrows():
                 nc_cgi = min_cell[5]
                 nc_name = list(base2.loc[idx[:,:,:,:,:,nc_cgi],idx['小区中文名']])[0]
         
-                row = DataFrame([sc_cgi,sc_name,samples,nc_cgi,nc_name]).T
+                row = DataFrame([sc_cgi,sc_name,samples,nc_cgi,nc_name,correlation,cdfg]).T
         
                 result =result.append(row)
                 
