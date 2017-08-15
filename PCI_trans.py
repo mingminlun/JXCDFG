@@ -2,17 +2,20 @@
 from pandas import Series,DataFrame
 import pandas as pd
 import math
+import numpy as np
 
 idx = pd.IndexSlice
 
-df1 = pd.read_csv('C:\Work\JXWLJG\MR_0730\MRO-CDFGPCI-20170731-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc_pci','t','6dB'],low_memory=False)
+df1 = pd.read_csv('C:\Work\JXWLJG\\08_030405\MRO-CDFGPCI-20170804-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc\
+_pci','t','6dB'],low_memory=False)
 del df1['t']
 
 base1 = pd.read_csv('C:\Work\JXWLJG\\0618gc.csv',encoding = 'utf-8')
 
 r = 6371229
 
-#dis = lambda lng1,lat1,lng2,lat2:math.sqrt(((lng1-lng2)*math.pi*r*math.cos(((lat1 + lat2) / 2) * math.pi / 180) / 180)**2+((lat1 - lat2)*math.pi*r/180)**2)
+#dis = lambda lng1,lat1,lng2,lat2:math.sqrt(((lng1-lng2)*math.pi*r*math.cos(((lat1 + lat2) / 2) * math.pi / 180) / 180)\
+# **2+((lat1 - lat2)*math.pi*r/180)**2)
 
 ear_trans = lambda ear:int(ear)+2640 if (int(ear) >= 37750 and int(ear)<=38249) else int(ear)
  
@@ -28,22 +31,26 @@ df1 = df1.ix['室外'].ix['网格内'].reset_index()
 df1['sc_ear']=df1['sc_ear'].apply(ear_trans)
 df1['nc_ear']=df1['nc_ear'].apply(ear_trans)
 
-df1_count = pd.read_csv('C:\Work\JXWLJG\MR_0730\\0731_count.csv',encoding = 'utf-8') #读入重叠覆盖统计
+df1_count = pd.read_csv('C:\Work\JXWLJG\\08_030405\\0804_count.csv',encoding = 'utf-8') #读入重叠覆盖统计
 
-df1 = pd.merge(df1,df1_count.loc[:,['CGI.1','大于-110采样点数','重叠覆盖度']],left_on = 'cgi',right_on = 'CGI.1',how ='left').dropna()
+df1 = pd.merge(df1,df1_count.loc[:,['CGI.1','大于-110采样点数','重叠覆盖度']],left_on = 'cgi',right_on = 'CGI.1',how ='lef\
+t').dropna()
 
-df1['correlation'] = df1['6dB']/df1['大于-110采样点数']
+df1['correlation'] = df1['6dB'].astype(np.float64)/df1['大于-110采样点数'].astype(np.float64)
 
 df1 = df1[df1['correlation']>0.03]
 
 base1['中心载频的信道号']=base1['中心载频的信道号'].apply(ear_trans)
 
-base2= base1.set_index(['覆盖类型','物理小区识别码','中心载频的信道号','地市','区县','CGI'],drop=False).sortlevel(0).drop(['室内'],axis = 0)
+base2= base1.set_index(['覆盖类型','物理小区识别码','中心载频的信道号','地市','区县','CGI'],drop=False).sortlevel(0).drop(['\
+室内'],axis = 0)
 
 result = DataFrame()
 
 def dis2(row):
-    return math.sqrt(((row['经度']-row['sc_lng'])*math.pi*r*math.cos(((row['纬度'] + row['sc_lat']) / 2) * math.pi / 180) / 180)**2 + ((row['纬度'] - row['sc_lat'])*math.pi*r/180) **2)
+    return math.sqrt(((row['经度']-row['sc_lng'])*math.pi*r*math.cos(((row['纬度'] + row['sc_lat']) / 2) * math.pi / 180\
+                                                                   ) / 180)**2 + ((row['纬度'] - row['sc_lat'])*math.pi*\
+                                                                                  r/180) **2)
 
 CGI = list(base2['CGI'])
 
