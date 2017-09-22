@@ -6,11 +6,11 @@ import numpy as np
 
 idx = pd.IndexSlice
 
-df1 = pd.read_csv('C:\Work\JXWLJG\\08_030405\MRO-CDFGPCI-20170804-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc\
+df1 = pd.read_csv('C:\Work\JXWLJG\\09_07\MRO-CDFGPCI-20170907-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc\
 _pci','t','6dB'],low_memory=False)
 del df1['t']
 
-base1 = pd.read_csv('C:\Work\JXWLJG\\0618gc.csv',encoding = 'utf-8')
+base1 = pd.read_csv('C:\Work\JXWLJG\\0618gc_wg.csv',encoding = 'utf-8')
 
 r = 6371229
 
@@ -31,7 +31,7 @@ df1 = df1.ix['室外'].ix['网格内'].reset_index()
 df1['sc_ear']=df1['sc_ear'].apply(ear_trans)
 df1['nc_ear']=df1['nc_ear'].apply(ear_trans)
 
-df1_count = pd.read_csv('C:\Work\JXWLJG\\08_030405\\0804_count.csv',encoding = 'utf-8') #读入重叠覆盖统计
+df1_count = pd.read_csv('C:\Work\JXWLJG\\09_07\\0907_counts_new.csv',encoding = 'utf-8') #读入重叠覆盖统计
 
 df1 = pd.merge(df1,df1_count.loc[:,['CGI.1','大于-110采样点数','重叠覆盖度']],left_on = 'cgi',right_on = 'CGI.1',how ='lef\
 t').dropna()
@@ -88,7 +88,7 @@ for ix, row in df1.iterrows():
                 
                 print(ix)
 
-
+result.to_csv('C:\Work\JXWLJG\\09_07\\0907_PCItrans.csv', encoding='utf-8')
                 
 #a =base2.loc[idx[:,:,:,:,'460-00-934049-138'],idx['经度']] 
 #a =base2.loc[idx[:,:,:,:,df1.loc[0,'cgi']],idx['经度']]
