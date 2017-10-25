@@ -6,7 +6,7 @@ import numpy as np
 
 idx = pd.IndexSlice
 
-df1 = pd.read_csv('C:\Work\JXWLJG\\09_07\MRO-CDFGPCI-20170907-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc\
+df1 = pd.read_csv('C:\Work\JXWLJG\\10_12\MRO-CDFGPCI-20171012-all',skiprows = 1,names =['eci','sc_ear','nc_ear','nc\
 _pci','t','6dB'],low_memory=False)
 del df1['t']
 
@@ -31,7 +31,7 @@ df1 = df1.ix['室外'].ix['网格内'].reset_index()
 df1['sc_ear']=df1['sc_ear'].apply(ear_trans)
 df1['nc_ear']=df1['nc_ear'].apply(ear_trans)
 
-df1_count = pd.read_csv('C:\Work\JXWLJG\\09_07\\0907_counts_new.csv',encoding = 'utf-8') #读入重叠覆盖统计
+df1_count = pd.read_csv('C:\Work\JXWLJG\\10_12\\1012_counts_oldcp.csv',encoding = 'utf-8') #读入重叠覆盖统计
 
 df1 = pd.merge(df1,df1_count.loc[:,['CGI.1','大于-110采样点数','重叠覆盖度']],left_on = 'cgi',right_on = 'CGI.1',how ='lef\
 t').dropna()
@@ -70,25 +70,28 @@ for ix, row in df1.iterrows():
         sc_county = list(base2.loc[idx[:,:,:,:,:,sc_cgi],idx['区县']])[0]
         sc_lng = float(base2.loc[idx[:,:,:,:,:,sc_cgi],idx['经度']])
         sc_lat = float(base2.loc[idx[:,:,:,:,:,sc_cgi],idx['纬度']])
-        
-        tempdf = base2.loc[idx[:,nc_pci,nc_earfcn,sc_city,sc_county,:],idx['经度','纬度']]
-        if tempdf.empty != True:
-            tempdf['sc_lng']= sc_lng
-            tempdf['sc_lat']= sc_lat
-            tempdf['dis'] = tempdf.apply(dis2,axis=1)
-            min_cell =tempdf['dis'].idxmin(axis =1)
-            
-            if type(min_cell) == tuple:
-                nc_cgi = min_cell[5]
-                nc_name = list(base2.loc[idx[:,:,:,:,:,nc_cgi],idx['小区中文名']])[0]
-        
-                row = DataFrame([sc_cgi,sc_name,samples,nc_cgi,nc_name,correlation,cdfg]).T
-        
-                result =result.append(row)
-                
-                print(ix)
+        try:
+            tempdf = base2.loc[idx[:,nc_pci,nc_earfcn,sc_city,sc_county,:],idx['经度','纬度']]
+        except KeyError:
+            print(str(ix) + 'keyerror')
+        else:
+            if tempdf.empty != True:
+                tempdf['sc_lng']= sc_lng
+                tempdf['sc_lat']= sc_lat
+                tempdf['dis'] = tempdf.apply(dis2,axis=1)
+                min_cell =tempdf['dis'].idxmin(axis =1)
 
-result.to_csv('C:\Work\JXWLJG\\09_07\\0907_PCItrans.csv', encoding='utf-8')
+                if type(min_cell) == tuple:
+                    nc_cgi = min_cell[5]
+                    nc_name = list(base2.loc[idx[:,:,:,:,:,nc_cgi],idx['小区中文名']])[0]
+
+                    row = DataFrame([sc_cgi,sc_name,samples,nc_cgi,nc_name,correlation,cdfg]).T
+
+                    result =result.append(row)
+
+                    print(ix)
+
+result.to_csv('C:\Work\JXWLJG\\10_12\\1012_PCItrans.csv', encoding='utf-8')
                 
 #a =base2.loc[idx[:,:,:,:,'460-00-934049-138'],idx['经度']] 
 #a =base2.loc[idx[:,:,:,:,df1.loc[0,'cgi']],idx['经度']]
