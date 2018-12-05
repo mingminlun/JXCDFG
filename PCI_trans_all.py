@@ -27,7 +27,7 @@ df1['cgi'] = df1['eci'].apply(eci2cgi)
 df1 = pd.merge(df1, base1.loc[:, ['CGI', '覆盖类型', '网格', '地市', '区县']], left_on='cgi', right_on='CGI', how='left')
 
 df1 = df1.set_index(['覆盖类型', '网格']).sortlevel(0).dropna()
-df1 = df1.ix['室外'].reset_index()
+df1 = df1.ix['室外'].ix['网格内'].reset_index()
 
 df1['sc_ear'] = df1['sc_ear'].apply(ear_trans)
 df1['nc_ear'] = df1['nc_ear'].apply(ear_trans)
@@ -69,14 +69,11 @@ for ix, row in df1.iterrows():
     cdfg = float(df1.loc[ix, '重叠覆盖度'])
 
     if sc_cgi in CGI:
-        try:
-            sc_name = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['小区中文名']])[0]
-            sc_city = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['地市']])[0]
-            sc_county = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['区县']])[0]
-            sc_lng = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['经度']])
-            sc_lat = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['纬度']])
-        except TypeError:
-            print(str(ix)+'TypeError')
+        sc_name = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['小区中文名']])[0]
+        sc_city = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['地市']])[0]
+        sc_county = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['区县']])[0]
+        sc_lng = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['经度']])
+        sc_lat = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['纬度']])
         try:
             tempdf = base2.loc[idx[:, nc_pci, nc_earfcn, sc_city, sc_county, :], idx['经度', '纬度']]
         except KeyError:
@@ -98,7 +95,7 @@ for ix, row in df1.iterrows():
 
                     print(ix)
 
-result.to_csv('C:\Work\JXWLJG\\12_18\\1218_PCItrans_all.csv', encoding='utf-8')
+result.to_csv('C:\Work\JXWLJG\\12_18\\1218_PCItrans.csv', encoding='utf-8')
 
 # a =base2.loc[idx[:,:,:,:,'460-00-934049-138'],idx['经度']]
 # a =base2.loc[idx[:,:,:,:,df1.loc[0,'cgi']],idx['经度']]

@@ -6,19 +6,20 @@ import numpy as np
 
 idx = pd.IndexSlice
 
-df1 = pd.read_csv('C:\Work\JXWLJG\\12_18\MRO-CDFGPCI-20171218-all', skiprows=1, names=['eci', 'sc_ear', 'nc_ear', 'nc\
+df1 = pd.read_csv('C:\Work\JXWLJG\\11_02\MRO-CDFGPCI-20171102-all', skiprows=1, names=['eci', 'sc_ear', 'nc_ear', 'nc\
 _pci', 't', '6dB'], low_memory=False)
 
 del df1['t']
 
-base1 = pd.read_csv('C:\Work\JXWLJG\\0618gc_wg.csv', encoding='utf-8')
+base1 = pd.read_csv('C:\Work\JXWLJG\\0920gc_wg.csv', encoding='utf-8')
+base1 = base1[base1.中心载频的信道号.isnull().values == False]
 
 r = 6371229
 
 # dis = lambda lng1,lat1,lng2,lat2:math.sqrt(((lng1-lng2)*math.pi*r*math.cos(((lat1 + lat2) / 2) * math.pi / 180) / 180)
 # **2+((lat1 - lat2)*math.pi*r/180)**2)
 
-ear_trans =lambda ear: int(ear) + 2640 if (int(ear) >= 37750 and int(ear) <= 38249) else int(ear)
+ear_trans = lambda ear: int(ear) + 2640 if (int(ear) >= 37750 and int(ear) <= 38249) else int(ear)
 
 eci2cgi = lambda x: "460-00-" + str(int(hex(x)[2:7], 16)) + "-" + str(int(hex(x)[-2:], 16))
 
@@ -27,12 +28,12 @@ df1['cgi'] = df1['eci'].apply(eci2cgi)
 df1 = pd.merge(df1, base1.loc[:, ['CGI', '覆盖类型', '网格', '地市', '区县']], left_on='cgi', right_on='CGI', how='left')
 
 df1 = df1.set_index(['覆盖类型', '网格']).sortlevel(0).dropna()
-df1 = df1.ix['室外'].reset_index()
+df1 = df1.ix['室外'].ix['网格内'].reset_index()
 
 df1['sc_ear'] = df1['sc_ear'].apply(ear_trans)
 df1['nc_ear'] = df1['nc_ear'].apply(ear_trans)
 
-df1_count = pd.read_csv('C:\Work\JXWLJG\\12_18\\1218_counts_oldcp.csv', encoding='utf-8')  # 读入重叠覆盖统计
+df1_count = pd.read_csv('C:\Work\JXWLJG\\11_02\\1102_counts_newcp.csv', encoding='utf-8')  # 读入重叠覆盖统计
 
 df1 = pd.merge(df1, df1_count.loc[:, ['CGI.1', '大于-110采样点数', '重叠覆盖度']], left_on='cgi', right_on='CGI.1', how='lef\
 t').dropna()
@@ -69,14 +70,11 @@ for ix, row in df1.iterrows():
     cdfg = float(df1.loc[ix, '重叠覆盖度'])
 
     if sc_cgi in CGI:
-        try:
-            sc_name = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['小区中文名']])[0]
-            sc_city = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['地市']])[0]
-            sc_county = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['区县']])[0]
-            sc_lng = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['经度']])
-            sc_lat = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['纬度']])
-        except TypeError:
-            print(str(ix)+'TypeError')
+        sc_name = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['小区中文名']])[0]
+        sc_city = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['地市']])[0]
+        sc_county = list(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['区县']])[0]
+        sc_lng = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['经度']])
+        sc_lat = float(base2.loc[idx[:, :, :, :, :, sc_cgi], idx['纬度']])
         try:
             tempdf = base2.loc[idx[:, nc_pci, nc_earfcn, sc_city, sc_county, :], idx['经度', '纬度']]
         except KeyError:
@@ -98,7 +96,7 @@ for ix, row in df1.iterrows():
 
                     print(ix)
 
-result.to_csv('C:\Work\JXWLJG\\12_18\\1218_PCItrans_all.csv', encoding='utf-8')
+result.to_csv('C:\Work\JXWLJG\\11_02\\1102_PCItrans_newcp.csv', encoding='utf-8')
 
 # a =base2.loc[idx[:,:,:,:,'460-00-934049-138'],idx['经度']]
 # a =base2.loc[idx[:,:,:,:,df1.loc[0,'cgi']],idx['经度']]
